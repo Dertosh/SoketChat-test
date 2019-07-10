@@ -3,7 +3,7 @@ from scapy.all import *
 
 PORT = 50000
 IN_PORT = 60000 
-TEST_NUMBER = 38
+TEST_NUMBER = 39
 IFACE = ''
 list_ids = [] # id пакетов для игнора
 
@@ -17,25 +17,32 @@ def pkt_callback(pkt):
         return
     if(TEST_NUMBER >= len(pkt.load)):
         TEST_NUMBER -= len(pkt.load)
+
     print(pkt.load)
     print(pkt.load[TEST_NUMBER])
-    arr = bytearray(pkt.load)
-    #arr[TEST_NUMBER] = pkt.load[TEST_NUMBER] ^ int('1000', 2)
-    #pkt.load = bytes(arr)
-    print(arr[TEST_NUMBER])
-    #
-    #print(pkt[IP].ip)
+    
     send_port = 0
     if(pkt[UDP].dport == PORT):
         send_port = 60000
     else:
         send_port = PORT
-    #Ether(dst=pkt[Ether].dst, src=pkt[Ether].src, type=pkt[Ether].type)/
-    out_packet = IP(src=pkt[IP].src, dst=pkt[IP].dst, id=pkt[IP].id)/UDP(dport=send_port, sport=send_port)/bytes(arr)
-    list_ids.append(pkt[IP].id)
-    print("\nout_packet")
-    out_packet.show2()
-    print("test = ", send(out_packet, return_packets=True))
+    
+    iterator = 18
+    pkt_list = []
+    print("moding start")
+    while(iterator<len(pkt.load)):
+
+        arr = bytearray(pkt.load)
+        arr[iterator] = pkt.load[iterator] ^ int('1010', 2)
+        #print(arr[TEST_NUMBER])
+
+        out_packet = IP(src=pkt[IP].src, dst=pkt[IP].dst, flags=pkt[IP].flags, ttl=pkt[IP].ttl, id=pkt[IP].id)/UDP(dport=send_port, sport=send_port)/bytes(arr)
+        list_ids.append(pkt[IP].id)
+        pkt_list.append(out_packet)
+        iterator+=1
+    #print("\nout_packet")
+    #out_packet.show2()
+    print("test = ", send(pkt_list, return_packets=True))
 
     
     #send(pkt)
